@@ -2,18 +2,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-const port = 3000; // Kullanmak istediğiniz port numarasını seçebilirsiniz.
+const port = 3000;
 
-// JSON verilerini ayrıştırmak için body-parser middleware'i kullanın.
 app.use(bodyParser.json());
 
-// POST isteğini dinlemek için bir endpoint oluşturun.
 app.post('/webhook', (req, res) => {
-  // Gelen isteği loglayabiliriz.
   console.log('Webhook isteği alındı:');
-  console.log(req.body); // İstek gövdesini logla
+  console.log(req);
 
-  // Yanıt göndermek isterseniz:
   res.status(200).json({ message: 'Webhook isteği alındı.' });
 });
 
