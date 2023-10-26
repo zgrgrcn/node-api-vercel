@@ -8,9 +8,13 @@ app.use(bodyParser.json());
 
 app.post('/webhook', (req, res) => {
   console.log('Webhook isteği alındı:');
-  console.log(req);
+  console.log('Body:', req.body);
+  console.log('webhook socket:', req.socket);
+  console.log('webhook event:', req.body.event);
+  console.log('webhook data:', req.body.data);
 
-  res.status(200).json({ message: 'Webhook isteği alındı.' });
+
+  res.status(200).end();
 });
 
 app.get('/', (req, res) => {
