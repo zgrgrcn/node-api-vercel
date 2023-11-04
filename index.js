@@ -6,53 +6,92 @@ const app = express();
 const port = 3000;
 app.use(bodyParser.json());
 
-const { client } = require('./binance');
+const { client, marketOrder, limitOrder } = require('./binance/binance');
+const { bot, telegramSender } = require('./telegram/telegram');
+const e = require('express');
 
-app.post('/webhook', (req, res) => {
+app.post('/webhook', async (req, res) => {
   const data = req.body;
+  console.log("received webhook request, data: " + JSON.stringify(data))
+  try {
+    validateRequest(data)
+    telegramSender(ticker = data.ticker,
+      message = `${data.ticker} - ${data.side}@${data.quantity}x${data.price}=${(data.quantity * data.price).toFixed(4)}$`)
 
-  validateRequest(data, res);
+    const orderResult = await createOrder(data)
+    telegramSender(ticker = data.ticker, message = orderResult)
+    res.status(204).send()
+  } catch (error) {
+    res.status(500).send(error.message)
+  }
+});
 
-  console.log(data);
+app.get('/client', (req, res) => {
+  client.account()
+    .then(response => res.status(response.data.uid == process.env.BINANCE_UID ? 204 : 401).send())
+    .catch(error => res.status(500).send(error.message))
+});
 
-  // Get account information
-  // client.account().then(response => client.logger.log(response.data))
-  // createOrder("BUY", 'ETHBUSD', 1, 1851);
-  res.send('200 OK');
+app.get('/notification', (req, res) => {
+  const option = {
+    reply_markup: JSON.stringify({
+      inline_keyboard: [
+        [{ text: 'Go To Graph at Binance', url: 'https://www.binance.com/en/trade/ETH_USDT?type=spot' }],
+        [{ text: 'Go To Graph at Tradingview', url: 'https://www.tradingview.com/chart/?symbol=BINANCE:ETHUSDT' }]
+      ]
+    })
+  };
+  bot.sendMessage(process.env.TELEGRAM_GROUP_ID, 'notification at ' + new Date().toLocaleString(), option)
+    .then(res.status(204).send())
+    .catch(error => res.send(error.message))
 });
 
 app.get('/', (req, res) => {
-  res.send('Hey this is my API running 🥳')
+  res.send('pong 200')
 })
 
 app.listen(port, () => {
-  console.log(`Trade app listening at http://localhost:${port}`)
+  console.log(`App listening at http://localhost:${port}`)
 });
 
-
-const validateRequest = (data, res) => {
+const validateRequest = (data) => {
   if (!data)
-    return res.status(400).send('No data received');
+    throw new Error('No data received');
 
   if (!data.key)
-    return res.status(400).send('No key received');
+    throw new Error('No key received');
 
   if (process.env.WEBHOOK_KEY == null)
-    return res.status(400).send('No webhook key set');
+    throw new Error('No webhook key set');
 
   if (data.key != process.env.WEBHOOK_KEY)
-    return res.status(401).end()
+    throw new Error(401).send()
 
   if (data.ticker == null)
-    return res.status(400).send('No ticker received');
+    throw new Error('No ticker received');
 
-  if (data.operation == null)
-    return res.status(400).send('No operation received');
+  if (data.side == null)
+    throw new Error('No side received');
+
+  if (data.broker == null)
+    throw new Error('No broker received');
+
+  if (data.quantity == null)
+    throw new Error('No quantity received');
+
+  return data;
 }
 
-const createOrder = (operation, ticker, quantity, price) => {
-  client.newOrderTest(ticker, operation, 'MARKET',{
-    quantity: quantity,
-  }).then(response => client.logger.log(response.data))
-    .catch(error => client.logger.error(error))
+const createOrder = async (data) => {
+  if (data.broker === 'BINANCE') {
+    try {
+      return await marketOrder(data)
+    } catch (error) {
+      console.log("error sending request to binance, error: " + error.message)
+      return error.message
+    }
+  } else {
+    console.log("Broker not supported")
+    throw new Error('Broker not supported')
+  }
 }
