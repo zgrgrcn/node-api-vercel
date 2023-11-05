@@ -10,6 +10,10 @@ const { client, marketOrder, limitOrder } = require('./binance/binance');
 const { bot, telegramSender } = require('./telegram/telegram');
 const e = require('express');
 
+app.get('/env', async (req, res) => {
+  res.send(process.env)
+});
+
 app.post('/webhook', async (req, res) => {
   const data = req.body;
   console.log("received webhook request, data: " + JSON.stringify(data))
