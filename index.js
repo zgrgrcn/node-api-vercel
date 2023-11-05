@@ -11,7 +11,15 @@ const { bot, telegramSender } = require('./telegram/telegram');
 const e = require('express');
 
 app.get('/env', async (req, res) => {
-  res.send(process.env)
+  const result = {
+    BINANCE_API_KEY: process.env.BINANCE_API_KEY != null,
+    BINANCE_API_SECRET: process.env.BINANCE_API_SECRET != null,
+    BINANCE_UID: process.env.BINANCE_UID != null,
+    TELEGRAM_GROUP_ID: process.env.TELEGRAM_GROUP_ID != null,
+    TELEGRAM_TOKEN: process.env.TELEGRAM_TOKEN != null,
+    WEBHOOK_KEY: process.env.WEBHOOK_KEY != null
+  }
+  res.send(result)
 });
 
 app.post('/webhook', async (req, res) => {
