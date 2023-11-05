@@ -91,6 +91,9 @@ const validateRequest = (data) => {
   if (data.quantity == null)
     throw new Error('No quantity received');
 
+  if (data.price == null)
+    throw new Error('No price received');
+
   return data;
 }
 

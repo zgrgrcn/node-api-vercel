@@ -7,6 +7,14 @@ const client = new Spot(apiKey, apiSecret)
 const marketOrder = async (data) => {
   const { ticker, side, quantity } = data
   return "NOT sending market request to binance, ticker: " + ticker + ", side: " + side + ", quantity: " + quantity
+
+  // console.log("sending market request to binance")
+  // client.newOrder(data.ticker, data.side, 'MARKET', {
+  //   quantity: data.quantity
+  // }).then(response => client.logger.log(response.data))
+  //   .catch(error => client.logger.error(error))
+
+  // return "sent market request to binance, ticker: " + ticker + ", side: " + side + ", quantity: " + quantity
 }
 
 const limitOrder = async (data) => {
