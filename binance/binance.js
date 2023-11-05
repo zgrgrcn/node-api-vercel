@@ -12,7 +12,7 @@ const marketOrder = async (data) => {
   return await client.newOrder(ticker, side, 'MARKET', {
     quantity: quantity
   }).then(response => {
-    client.logger.log(response.data)
+    // client.logger.log(response.data)
     const result = {
       executedQty: response.data.executedQty, //0.00280000
       cummulativeQuoteQty: response.data.cummulativeQuoteQty, //5.25341600
