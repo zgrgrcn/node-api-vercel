@@ -27,11 +27,13 @@ app.post('/webhook', async (req, res) => {
   console.log("received webhook request, data: " + JSON.stringify(data))
   try {
     validateRequest(data)
+    data.quantity = ((data.orderSizeUSD / data.price) + 0.0001).toFixed(4)
     telegramSender(ticker = data.ticker,
-      message = `${data.ticker} - ${data.side}@${data.quantity}x${data.price}=${(data.quantity * data.price).toFixed(4)}$`)
+      message = `${data.ticker} - ${data.side}@${data.price}=${(data.quantity * data.price).toFixed(4)}$`,
+      from = 'tradingview')
 
     const orderResult = await createOrder(data)
-    telegramSender(ticker = data.ticker, message = orderResult)
+    telegramSender(ticker = data.ticker, message = orderResult, from = 'binance')
     res.status(204).send()
   } catch (error) {
     res.status(500).send(error.message)
@@ -88,11 +90,11 @@ const validateRequest = (data) => {
   if (data.broker == null)
     throw new Error('No broker received');
 
-  if (data.quantity == null)
-    throw new Error('No quantity received');
-
   if (data.price == null)
     throw new Error('No price received');
+
+  if (data.orderSizeUSD == null)
+    throw new Error('No orderSizeUSD received');
 
   return data;
 }
@@ -107,6 +109,6 @@ const createOrder = async (data) => {
     }
   } else {
     console.log("Broker not supported")
-    throw new Error('Broker not supported')
+    return 'Broker not supported'
   }
 }

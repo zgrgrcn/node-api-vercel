@@ -9,18 +9,29 @@ const goToBinance = (symbol) => [{
 const goToTradingview = (symbol) => [{
     text: 'Go To Graph at Tradingview', url: `https://www.tradingview.com/chart/?symbol=BINANCE:${symbol}`
 }];
+const unknownCommand = (command) => [{
+    text: 'Unknown from: ' + command, url: `https://www.google.com/search?q=${command}`
+}];
 
-const telegramSender = (ticker = 'ETHUSDT', message = 'no message provided') => {
-    const option = {
-        reply_markup: JSON.stringify({
-            inline_keyboard: [
-                goToBinance(ticker),
-                goToTradingview(ticker)
-            ]
-        })
-    };
+const telegramSender = (ticker = 'ETHUSDT', message = 'no message provided', from = 'both') => {
+    let inline_keyboard = []
+    if (from == 'bot') {
+        inline_keyboard.push(goToBinance(ticker))
+        inline_keyboard.push(goToTradingview(ticker))
+    } else if (from == 'binance') {
+        inline_keyboard.push(goToBinance(ticker))
+    } else if (from == 'tradingview') {
+        inline_keyboard.push(goToTradingview(ticker))
+    } else {
+        inline_keyboard.push(unknownCommand(from))
+    }
+
     console.log("Telegram message: " + message)
-    bot.sendMessage(process.env.TELEGRAM_GROUP_ID, message, option)
+    bot.sendMessage(process.env.TELEGRAM_GROUP_ID, message, {
+        reply_markup: JSON.stringify({
+            inline_keyboard: inline_keyboard
+        })
+    })
         // .then(response => console.log(response))
         .catch(error => console.log(error))
 }
