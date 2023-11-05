@@ -1,12 +1,14 @@
 const { Spot } = require('@binance/connector')
 const apiKey = process.env.BINANCE_API_KEY
 const apiSecret = process.env.BINANCE_API_SECRET
+const isBinanceEnabled = process.env.BINANCE_ENABLED
 const client = new Spot(apiKey, apiSecret)
 //https://binance.github.io/binance-connector-node/module-Trade.html#newOrder
 //https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
 const marketOrder = async (data) => {
   const { ticker, side, quantity } = data
-  // return "NOT sending market request to binance, ticker: " + ticker + ", side: " + side + ", quantity: " + quantity
+  if (!isBinanceEnabled)
+    return "NOT sending market request to binance, ticker: " + ticker + ", side: " + side + ", quantity: " + quantity
 
   console.log("sending market request to binance")
   return await client.newOrder(ticker, side, 'MARKET', {
@@ -30,12 +32,23 @@ const marketOrder = async (data) => {
 }
 
 const limitOrder = async (data) => {
-  const { symbol, side, type, quantity, price } = data
-  console.log("sending limit request to binance")
-  await client.newOrder(data.ticker, data.side, 'LIMIT', {
-    price: '350',
-    quantity: 1,
-    timeInForce: 'GTC'
+  const { ticker, side, quantity, price } = data
+  console.log("NOT sending limit request to binance")
+  // await client.newOrder(data.ticker, data.side, 'LIMIT', {
+  //   price: '350',
+  //   quantity: 1,
+  //   timeInForce: 'GTC'
+  // }).then(response => client.logger.log(response.data))
+  //   .catch(error => client.logger.error(error))
+}
+
+const stopLossOrder = async (data) => {
+  const { ticker, side, quantity, price } = data
+  console.log("sending stop loss request to binance")
+  await client.newOrder(data.ticker, data.side, 'STOP_LOSS', {
+    stopPrice: '350', //DECIMAL
+    quantity: 1, //DECIMAL
+    trailingDelta: 'GTC' //LONG
   }).then(response => client.logger.log(response.data))
     .catch(error => client.logger.error(error))
 }
