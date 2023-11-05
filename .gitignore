@@ -1,5 +1,5 @@
 node_modules
 .env
 heroku_env.json
-nodejs-server-server-generated
 .idea
+tradingview/alerts/*
