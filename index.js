@@ -6,9 +6,8 @@ const app = express();
 const port = process.env.PORT || 5000;
 app.use(bodyParser.json());
 
-const { client, marketOrder, limitOrder } = require('./binance/binance');
+const { client, marketOrder } = require('./binance/binance');
 const { bot, telegramSender } = require('./telegram/telegram');
-const e = require('express');
 
 app.get('/env', async (req, res) => {
   const result = {
@@ -28,7 +27,7 @@ app.post('/webhook', async (req, res) => {
   console.log("received webhook request, data: " + JSON.stringify(data))
   try {
     validateRequest(data)
-    data.quantity = ((data.orderSizeUSD / data.price) + 0.0001).toFixed(4)
+    data.quantity = ((data.orderSizeUSD / data.price)).toFixed(4)
     telegramSender(ticker = data.ticker,
       message = `${data.ticker} - ${data.side}@${data.price}=${(data.quantity * data.price).toFixed(4)}$`,
       from = 'tradingview')
